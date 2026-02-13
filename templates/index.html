@@ -14,7 +14,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    background: #ffffff;
     min-height: 100vh;
     padding: 40px 20px;
     display: flex;
@@ -32,7 +32,7 @@ body {
     align-items: center;
     gap: 15px;
     margin-bottom: 30px;
-    color: white;
+    color: #333;
 }
 
 .header-icon {
@@ -40,7 +40,7 @@ body {
 }
 
 h1 {
-    color: white;
+    color: #333;
     font-size: 2.5em;
     font-weight: 600;
 }
@@ -49,7 +49,7 @@ h1 {
     padding: 15px 30px;
     border: none;
     border-radius: 8px;
-    background: #00d084;
+    background: #6c757d;
     color: white;
     cursor: pointer;
     font-size: 18px;
@@ -62,27 +62,28 @@ h1 {
 }
 
 .add-button:hover {
-    background: #00b872;
+    background: #5a6268;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 208, 132, 0.4);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
 }
 
 .table-container {
-    background: #2c3e50;
+    background: #f8f9fa;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #dee2e6;
 }
 
 .table-header {
     display: grid;
     grid-template-columns: 1fr 250px;
-    background: #34495e;
+    background: #e9ecef;
     padding: 20px 30px;
-    color: white;
+    color: #495057;
     font-weight: 600;
     font-size: 16px;
-    border-bottom: 2px solid #2c3e50;
+    border-bottom: 2px solid #dee2e6;
 }
 
 .table-body {
@@ -95,11 +96,11 @@ h1 {
 }
 
 .table-body::-webkit-scrollbar-track {
-    background: #2c3e50;
+    background: #f8f9fa;
 }
 
 .table-body::-webkit-scrollbar-thumb {
-    background: #00d084;
+    background: #adb5bd;
     border-radius: 10px;
 }
 
@@ -107,14 +108,14 @@ h1 {
     display: grid;
     grid-template-columns: 1fr 250px;
     padding: 20px 30px;
-    border-bottom: 1px solid #34495e;
-    color: white;
+    border-bottom: 1px solid #dee2e6;
+    color: #495057;
     transition: all 0.3s ease;
     align-items: center;
 }
 
 .table-row:hover {
-    background: #34495e;
+    background: #e9ecef;
 }
 
 .table-row:last-child {
@@ -123,7 +124,7 @@ h1 {
 
 .item-name {
     font-size: 16px;
-    color: white;
+    color: #495057;
 }
 
 .actions {
@@ -132,12 +133,33 @@ h1 {
     justify-content: flex-end;
 }
 
+.btn-edit {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    background: #adb5bd;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-edit:hover {
+    background: #868e96;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(173, 181, 189, 0.3);
+}
+
 .btn-delete {
     padding: 10px 20px;
     border: none;
     border-radius: 6px;
-    background: #721c24;
-    color: #ff6b6b;
+    background: #6c757d;
+    color: white;
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
@@ -148,13 +170,92 @@ h1 {
 }
 
 .btn-delete:hover {
-    background: #8b2332;
+    background: #5a6268;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeInModal 0.3s ease;
+}
+
+@keyframes fadeInModal {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-box {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    animation: scaleIn 0.3s ease;
+    border: 1px solid #dee2e6;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.modal-box h3 {
+    margin: 0 0 25px 0;
+    color: #333;
+    font-size: 1.8em;
+    text-align: center;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 15px;
+    border-radius: 8px;
+    border: 2px solid #ced4da;
+    font-size: 16px;
+    background: white;
+    color: #495057;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.modal-input:focus {
+    border-color: #6c757d;
+    box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.1);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.modal-buttons button {
+    flex: 1;
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 8px;
 }
 
 .btn-save {
-    background: #00d084;
+    background: #6c757d;
     border: none;
     color: white;
     cursor: pointer;
@@ -163,12 +264,12 @@ h1 {
 }
 
 .btn-save:hover {
-    background: #00b872;
+    background: #5a6268;
     transform: translateY(-2px);
 }
 
 .btn-cancel {
-    background: #95a5a6;
+    background: #adb5bd;
     border: none;
     color: white;
     cursor: pointer;
@@ -177,7 +278,7 @@ h1 {
 }
 
 .btn-cancel:hover {
-    background: #7f8c8d;
+    background: #868e96;
     transform: translateY(-2px);
 }
 
@@ -198,10 +299,11 @@ h1 {
 
 .add-form {
     display: none;
-    background: #2c3e50;
+    background: #f8f9fa;
     padding: 25px 30px;
     border-radius: 12px;
     margin-bottom: 20px;
+    border: 1px solid #dee2e6;
 }
 
 .add-form.active {
@@ -212,16 +314,16 @@ h1 {
     width: 100%;
     padding: 15px;
     border-radius: 8px;
-    border: 2px solid #34495e;
+    border: 2px solid #ced4da;
     font-size: 16px;
-    background: #34495e;
-    color: white;
+    background: white;
+    color: #495057;
     outline: none;
     margin-bottom: 15px;
 }
 
 .add-form input:focus {
-    border-color: #00d084;
+    border-color: #6c757d;
 }
 
 .form-buttons {
@@ -245,8 +347,8 @@ h1 {
 
 <div class="container">
 <div class="header">
-<span class="header-icon">👥</span>
-<h1>Usuarios</h1>
+<span class="header-icon">�</span>
+<h1>CRUD</h1>
 </div>
 
 <button class="add-button" onclick="toggleAddForm()">
@@ -271,7 +373,20 @@ h1 {
 </div>
 </div>
 
+<div class="modal" id="modal">
+<div class="modal-box">
+<h3>Editar Usuario</h3>
+<input id="editTxt" class="modal-input" placeholder="Nuevo nombre...">
+<div class="modal-buttons">
+<button class="btn-save" onclick="save()">💾 Guardar</button>
+<button class="btn-cancel" onclick="closeModal()">❌ Cancelar</button>
+</div>
+</div>
+</div>
+
 <script>
+
+let editId = null
 
 function clean(t){
     return t.replace(/[<>]/g,"")
@@ -310,6 +425,15 @@ async function load(){
         const actions=document.createElement("div")
         actions.className="actions"
 
+        const e=document.createElement("button")
+        e.className="btn-edit"
+        e.innerHTML='✏️ Editar'
+        e.onclick=()=>{
+            editId=i.id
+            editTxt.value=i.name
+            modal.style.display="flex"
+        }
+
         const d=document.createElement("button")
         d.className="btn-delete"
         d.innerHTML='🗑️ Eliminar'
@@ -320,6 +444,7 @@ async function load(){
             }
         }
 
+        actions.appendChild(e)
         actions.appendChild(d)
         row.appendChild(name)
         row.appendChild(actions)
@@ -340,6 +465,24 @@ async function add(){
     txt.value=""
     toggleAddForm()
     load()
+}
+
+async function save(){
+    const val=clean(editTxt.value.trim())
+    if(!val) return alert("Por favor escribe un nombre")
+
+    await fetch("/items/"+editId,{
+        method:"PUT",
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name:val})
+    })
+
+    closeModal()
+    load()
+}
+
+function closeModal(){
+    modal.style.display="none"
 }
 
 load()
