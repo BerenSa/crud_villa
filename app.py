@@ -71,4 +71,50 @@ def add_item():
     name = clean_input(raw)
 
     if not name:
-        return {"e
+        return {"error": "input inválido"}, 400
+
+    con = get_db()
+    con.execute("INSERT INTO items(name) VALUES(?)", (name,))
+    con.commit()
+    con.close()
+
+    return {"ok": True}
+
+
+# UPDATE
+@app.route("/items/<int:item_id>", methods=["PUT"])
+def edit(item_id):
+    raw = request.json.get("name", "")
+    name = clean_input(raw)
+
+    if not name:
+        return {"error": "input inválido"}, 400
+
+    con = get_db()
+    con.execute(
+        "UPDATE items SET name=? WHERE id=?",
+        (name, item_id)
+    )
+    con.commit()
+    con.close()
+
+    return {"ok": True}
+
+
+# DELETE
+@app.route("/items/<int:item_id>", methods=["DELETE"])
+def delete(item_id):
+    con = get_db()
+    con.execute("DELETE FROM items WHERE id=?", (item_id,))
+    con.commit()
+    con.close()
+
+    return {"ok": True}
+
+
+# =========================
+# RUN
+# =========================
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
