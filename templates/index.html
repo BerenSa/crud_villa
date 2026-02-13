@@ -23,13 +23,14 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 800px;
     width: 100%;
 }
 
 .header {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 15px;
     margin-bottom: 30px;
     color: #333;
@@ -77,7 +78,7 @@ h1 {
 
 .table-header {
     display: grid;
-    grid-template-columns: 1fr 250px;
+    grid-template-columns: 1fr 200px;
     background: #e9ecef;
     padding: 20px 30px;
     color: #495057;
@@ -106,7 +107,7 @@ h1 {
 
 .table-row {
     display: grid;
-    grid-template-columns: 1fr 250px;
+    grid-template-columns: 1fr 200px;
     padding: 20px 30px;
     border-bottom: 1px solid #dee2e6;
     color: #495057;
@@ -347,12 +348,11 @@ h1 {
 
 <div class="container">
 <div class="header">
-<span class="header-icon">�</span>
 <h1>CRUD</h1>
 </div>
 
 <button class="add-button" onclick="toggleAddForm()">
-<span>➕</span> Agregar Usuario
+<span>➕</span> Agregar
 </button>
 
 <div id="addForm" class="add-form">
@@ -375,7 +375,7 @@ h1 {
 
 <div class="modal" id="modal">
 <div class="modal-box">
-<h3>Editar Usuario</h3>
+<h3>Editar</h3>
 <input id="editTxt" class="modal-input" placeholder="Nuevo nombre...">
 <div class="modal-buttons">
 <button class="btn-save" onclick="save()">💾 Guardar</button>
