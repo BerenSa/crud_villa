@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>CRUD Simple</h2>
+
+<input id="name" placeholder="Escribe algo">
+<button onclick="add()">Agregar</button>
+
+<table border="1" id="table"></table>
+
+<script>
+const API="http://127.0.0.1:5000/items"
+
+async function load(){
+ let data=await fetch(API).then(r=>r.json())
+ let t=document.getElementById("table")
+ t.innerHTML=""
+ data.forEach(i=>{
+   t.innerHTML+=`
+   <tr>
+    <td>${i[1]}</td>
+    <td>
+      <button onclick="edit(${i[0]},'${i[1]}')">Editar</button>
+      <button onclick="del(${i[0]})">Eliminar</button>
+    </td>
+   </tr>`
+ })
+}
+
+async function add(){
+ let name=document.getElementById("name").value
+ await fetch(API,{
+   method:"POST",
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({name})
+ })
+ load()
+}
+
+async function del(id){
+ await fetch(API+"/"+id,{method:"DELETE"})
+ load()
+}
+
+function edit(id,old){
+ let name=prompt("Editar:",old)
+ fetch(API+"/"+id,{
+   method:"PUT",
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({name})
+ }).then(load)
+}
+
+load()
+</script>
+
+</body>
+</html>
