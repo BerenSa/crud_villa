@@ -1,59 +1,196 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>CRUD Seguro</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f6f8;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.card{
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    width:420px;
+    box-shadow:0 10px 25px rgba(0,0,0,.1);
+}
+
+h1{
+    margin-top:0;
+}
+
+input{
+    padding:10px;
+    width:70%;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+button{
+    padding:10px 14px;
+    border:none;
+    border-radius:6px;
+    background:#007bff;
+    color:white;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#0056b3;
+}
+
+.item{
+    display:flex;
+    justify-content:space-between;
+    margin-top:10px;
+    padding:8px;
+    border-bottom:1px solid #eee;
+}
+
+.delete{
+    background:#dc3545;
+}
+
+.edit{
+    background:#ffc107;
+    color:black;
+}
+
+.modal{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    background:rgba(0,0,0,.5);
+    display:none;
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content{
+    background:white;
+    padding:20px;
+    border-radius:8px;
+}
+</style>
+
+</head>
+
 <body>
 
-<h2>CRUD Simple</h2>
+<div class="card">
+<h1>CRUD Seguro</h1>
 
-<input id="name" placeholder="Escribe algo">
+<input id="txt" placeholder="Escribe algo">
 <button onclick="add()">Agregar</button>
 
-<table border="1" id="table"></table>
+<div id="list"></div>
+</div>
+
+<div class="modal" id="modal">
+<div class="modal-content">
+<h3>Editar</h3>
+<input id="editTxt">
+<button onclick="saveEdit()">Guardar</button>
+<button onclick="closeModal()">Cancelar</button>
+</div>
+</div>
 
 <script>
-const API="http://127.0.0.1:5000/items"
+
+let editingId=null
+
+function sanitize(text){
+    return text.replace(/[<>]/g,"")
+}
 
 async function load(){
- let data=await fetch(API).then(r=>r.json())
- let t=document.getElementById("table")
- t.innerHTML=""
- data.forEach(i=>{
-   t.innerHTML+=`
-   <tr>
-    <td>${i[1]}</td>
-    <td>
-      <button onclick="edit(${i[0]},'${i[1]}')">Editar</button>
-      <button onclick="del(${i[0]})">Eliminar</button>
-    </td>
-   </tr>`
- })
+    const res=await fetch("/items")
+    const data=await res.json()
+
+    const list=document.getElementById("list")
+    list.innerHTML=""
+
+    data.forEach(i=>{
+        const row=document.createElement("div")
+        row.className="item"
+
+        const span=document.createElement("span")
+        span.textContent=i.name
+
+        const actions=document.createElement("div")
+
+        const editBtn=document.createElement("button")
+        editBtn.textContent="Editar"
+        editBtn.className="edit"
+        editBtn.onclick=()=>{
+            editingId=i.id
+            document.getElementById("editTxt").value=i.name
+            document.getElementById("modal").style.display="flex"
+        }
+
+        const delBtn=document.createElement("button")
+        delBtn.textContent="Eliminar"
+        delBtn.className="delete"
+        delBtn.onclick=()=>remove(i.id)
+
+        actions.appendChild(editBtn)
+        actions.appendChild(delBtn)
+
+        row.appendChild(span)
+        row.appendChild(actions)
+        list.appendChild(row)
+    })
 }
 
 async function add(){
- let name=document.getElementById("name").value
- await fetch(API,{
-   method:"POST",
-   headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({name})
- })
- load()
+    const txt=document.getElementById("txt")
+    const val=sanitize(txt.value.trim())
+
+    if(!val) return alert("Vacío")
+
+    await fetch("/items",{
+        method:"POST",
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name:val})
+    })
+
+    txt.value=""
+    load()
 }
 
-async function del(id){
- await fetch(API+"/"+id,{method:"DELETE"})
- load()
+async function remove(id){
+    await fetch("/items/"+id,{method:"DELETE"})
+    load()
 }
 
-function edit(id,old){
- let name=prompt("Editar:",old)
- fetch(API+"/"+id,{
-   method:"PUT",
-   headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({name})
- }).then(load)
+async function saveEdit(){
+    const val=sanitize(document.getElementById("editTxt").value)
+
+    await fetch("/items/"+editingId,{
+        method:"PUT",
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name:val})
+    })
+
+    closeModal()
+    load()
+}
+
+function closeModal(){
+    document.getElementById("modal").style.display="none"
 }
 
 load()
-</script>
 
+</script>
 </body>
 </html>
