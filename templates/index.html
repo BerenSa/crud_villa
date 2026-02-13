@@ -17,11 +17,14 @@ body {
     background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
     min-height: 100vh;
     padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
 }
 
 .container {
     max-width: 1200px;
-    margin: 0 auto;
+    width: 100%;
 }
 
 .header {
@@ -129,27 +132,6 @@ h1 {
     justify-content: flex-end;
 }
 
-.btn-edit {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    background: #8b6914;
-    color: #ffd700;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.btn-edit:hover {
-    background: #a07a16;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
-}
-
 .btn-delete {
     padding: 10px 20px;
     border: none;
@@ -169,84 +151,6 @@ h1 {
     background: #8b2332;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-}
-
-.modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.8);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    animation: fadeInModal 0.3s ease;
-}
-
-@keyframes fadeInModal {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-.modal-box {
-    background: #2c3e50;
-    padding: 40px;
-    border-radius: 16px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-    animation: scaleIn 0.3s ease;
-}
-
-@keyframes scaleIn {
-    from {
-        transform: scale(0.9);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.modal-box h3 {
-    margin: 0 0 25px 0;
-    color: white;
-    font-size: 1.8em;
-    text-align: center;
-}
-
-.modal-input {
-    width: 100%;
-    padding: 15px;
-    border-radius: 8px;
-    border: 2px solid #34495e;
-    font-size: 16px;
-    background: #34495e;
-    color: white;
-    outline: none;
-    transition: all 0.3s ease;
-}
-
-.modal-input:focus {
-    border-color: #00d084;
-    box-shadow: 0 0 0 3px rgba(0, 208, 132, 0.2);
-}
-
-.modal-buttons {
-    display: flex;
-    gap: 12px;
-    margin-top: 25px;
-}
-
-.modal-buttons button {
-    flex: 1;
-    padding: 14px;
-    font-size: 16px;
-    border-radius: 8px;
 }
 
 .btn-save {
@@ -367,20 +271,7 @@ h1 {
 </div>
 </div>
 
-<div class="modal" id="modal">
-<div class="modal-box">
-<h3>Editar Usuario</h3>
-<input id="editTxt" class="modal-input" placeholder="Nuevo nombre...">
-<div class="modal-buttons">
-<button class="btn-save" onclick="save()">💾 Guardar</button>
-<button class="btn-cancel" onclick="closeModal()">❌ Cancelar</button>
-</div>
-</div>
-</div>
-
 <script>
-
-let editId=null
 
 function clean(t){
     return t.replace(/[<>]/g,"")
@@ -419,15 +310,6 @@ async function load(){
         const actions=document.createElement("div")
         actions.className="actions"
 
-        const e=document.createElement("button")
-        e.className="btn-edit"
-        e.innerHTML='✏️ Editar'
-        e.onclick=()=>{
-            editId=i.id
-            editTxt.value=i.name
-            modal.style.display="flex"
-        }
-
         const d=document.createElement("button")
         d.className="btn-delete"
         d.innerHTML='🗑️ Eliminar'
@@ -438,7 +320,6 @@ async function load(){
             }
         }
 
-        actions.appendChild(e)
         actions.appendChild(d)
         row.appendChild(name)
         row.appendChild(actions)
@@ -459,24 +340,6 @@ async function add(){
     txt.value=""
     toggleAddForm()
     load()
-}
-
-async function save(){
-    const val=clean(editTxt.value.trim())
-    if(!val) return alert("Por favor escribe un nombre")
-
-    await fetch("/items/"+editId,{
-        method:"PUT",
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({name:val})
-    })
-
-    closeModal()
-    load()
-}
-
-function closeModal(){
-    modal.style.display="none"
 }
 
 load()
