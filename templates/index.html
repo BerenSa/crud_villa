@@ -6,20 +6,21 @@
 
 <style>
 body{
-    font-family: Arial, sans-serif;
-    background:#f4f6f8;
+    font-family: system-ui;
+    background: linear-gradient(120deg,#4facfe,#00f2fe);
     display:flex;
     justify-content:center;
     align-items:center;
     height:100vh;
+    margin:0;
 }
 
-.card{
+.container{
     background:white;
     padding:30px;
-    border-radius:12px;
+    border-radius:14px;
     width:420px;
-    box-shadow:0 10px 25px rgba(0,0,0,.1);
+    box-shadow:0 20px 40px rgba(0,0,0,.2);
 }
 
 h1{
@@ -29,87 +30,79 @@ h1{
 input{
     padding:10px;
     width:70%;
-    border-radius:6px;
+    border-radius:8px;
     border:1px solid #ccc;
 }
 
 button{
     padding:10px 14px;
     border:none;
-    border-radius:6px;
-    background:#007bff;
+    border-radius:8px;
+    background:#4facfe;
     color:white;
     cursor:pointer;
+    margin-left:5px;
 }
 
 button:hover{
-    background:#0056b3;
+    opacity:.85;
 }
 
-.item{
+.row{
     display:flex;
     justify-content:space-between;
-    margin-top:10px;
-    padding:8px;
-    border-bottom:1px solid #eee;
+    margin-top:12px;
+    padding:10px;
+    background:#f7f7f7;
+    border-radius:8px;
 }
 
-.delete{
-    background:#dc3545;
-}
-
-.edit{
-    background:#ffc107;
-    color:black;
-}
+.delete{ background:#ff4d4d }
+.edit{ background:#ffc107;color:black }
 
 .modal{
     position:fixed;
-    top:0;
-    left:0;
-    right:0;
-    bottom:0;
-    background:rgba(0,0,0,.5);
+    inset:0;
+    background:rgba(0,0,0,.6);
     display:none;
     justify-content:center;
     align-items:center;
 }
 
-.modal-content{
+.modal-box{
     background:white;
     padding:20px;
-    border-radius:8px;
+    border-radius:12px;
 }
 </style>
-
 </head>
 
 <body>
 
-<div class="card">
+<div class="container">
 <h1>CRUD Seguro</h1>
 
-<input id="txt" placeholder="Escribe algo">
+<input id="txt">
 <button onclick="add()">Agregar</button>
 
 <div id="list"></div>
 </div>
 
 <div class="modal" id="modal">
-<div class="modal-content">
+<div class="modal-box">
 <h3>Editar</h3>
 <input id="editTxt">
-<button onclick="saveEdit()">Guardar</button>
+<button onclick="save()">Guardar</button>
 <button onclick="closeModal()">Cancelar</button>
 </div>
 </div>
 
 <script>
 
-let editingId=null
+let editId=null
 
-function sanitize(text){
-    return text.replace(/[<>]/g,"")
+function clean(t){
+    return t.replace(/[<>]/g,"")
 }
 
 async function load(){
@@ -121,41 +114,41 @@ async function load(){
 
     data.forEach(i=>{
         const row=document.createElement("div")
-        row.className="item"
+        row.className="row"
 
-        const span=document.createElement("span")
-        span.textContent=i.name
+        const name=document.createElement("span")
+        name.textContent=i.name
 
         const actions=document.createElement("div")
 
-        const editBtn=document.createElement("button")
-        editBtn.textContent="Editar"
-        editBtn.className="edit"
-        editBtn.onclick=()=>{
-            editingId=i.id
-            document.getElementById("editTxt").value=i.name
-            document.getElementById("modal").style.display="flex"
+        const e=document.createElement("button")
+        e.textContent="Editar"
+        e.className="edit"
+        e.onclick=()=>{
+            editId=i.id
+            editTxt.value=i.name
+            modal.style.display="flex"
         }
 
-        const delBtn=document.createElement("button")
-        delBtn.textContent="Eliminar"
-        delBtn.className="delete"
-        delBtn.onclick=()=>remove(i.id)
+        const d=document.createElement("button")
+        d.textContent="Eliminar"
+        d.className="delete"
+        d.onclick=async()=>{
+            await fetch("/items/"+i.id,{method:"DELETE"})
+            load()
+        }
 
-        actions.appendChild(editBtn)
-        actions.appendChild(delBtn)
-
-        row.appendChild(span)
+        actions.appendChild(e)
+        actions.appendChild(d)
+        row.appendChild(name)
         row.appendChild(actions)
         list.appendChild(row)
     })
 }
 
 async function add(){
-    const txt=document.getElementById("txt")
-    const val=sanitize(txt.value.trim())
-
-    if(!val) return alert("Vacío")
+    const val=clean(txt.value.trim())
+    if(!val) return alert("Escribe algo")
 
     await fetch("/items",{
         method:"POST",
@@ -167,15 +160,10 @@ async function add(){
     load()
 }
 
-async function remove(id){
-    await fetch("/items/"+id,{method:"DELETE"})
-    load()
-}
+async function save(){
+    const val=clean(editTxt.value)
 
-async function saveEdit(){
-    const val=sanitize(document.getElementById("editTxt").value)
-
-    await fetch("/items/"+editingId,{
+    await fetch("/items/"+editId,{
         method:"PUT",
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({name:val})
@@ -186,7 +174,7 @@ async function saveEdit(){
 }
 
 function closeModal(){
-    document.getElementById("modal").style.display="none"
+    modal.style.display="none"
 }
 
 load()
