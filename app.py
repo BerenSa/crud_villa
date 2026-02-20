@@ -23,8 +23,8 @@ MAX_FAILED_ATTEMPTS = 10
 BLOCK_DURATION_MINUTES = 15
 
 # Límites de seguridad para requests
-MAX_CONTENT_LENGTH = 1024  # 1KB máximo
-MAX_JSON_PAYLOAD = 1024  # 1KB para JSON
+MAX_CONTENT_LENGTH = 10240  # 10KB máximo (más flexible)
+MAX_JSON_PAYLOAD = 10240  # 10KB para JSON
 
 # Lista blanca de métodos HTTP permitidos
 ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
@@ -84,9 +84,10 @@ def validate_origin():
 @app.before_request
 def security_checks():
     """Verificaciones de seguridad antes de cada request"""
-    # Verificar intentos fallidos bloqueados
-    if not check_failed_attempts():
-        abort(429, description=f"Demasiados intentos fallidos. Bloqueado por {BLOCK_DURATION_MINUTES} minutos.")
+    # Verificar intentos fallidos bloqueados (solo para rutas de API)
+    if request.path.startswith('/items'):
+        if not check_failed_attempts():
+            abort(429, description=f"Demasiados intentos fallidos. Bloqueado por {BLOCK_DURATION_MINUTES} minutos.")
     
     # Validar método HTTP
     if request.method not in ALLOWED_METHODS:
@@ -106,16 +107,18 @@ def security_checks():
         if content_length and content_length > MAX_CONTENT_LENGTH:
             abort(413, description="Request demasiado grande")
     
-    # Validar Content-Type para requests con JSON
+    # Validar Content-Type solo para POST y PUT (no para DELETE)
     if request.method in ['POST', 'PUT'] and request.path.startswith('/items'):
         content_type = request.headers.get('Content-Type', '')
-        if 'application/json' not in content_type:
+        # Si hay contenido, debe ser JSON
+        if content_type and 'application/json' not in content_type.lower():
             abort(415, description="Content-Type debe ser application/json")
     
-    # Validar origen para rutas de API
-    if request.path.startswith('/items'):
+    # Validar origen para rutas de API (más permisivo para desarrollo)
+    if request.path.startswith('/items') and request.method != 'GET':
         if not validate_origin():
-            abort(403)
+            # En desarrollo, solo advertir pero permitir
+            pass
 
 
 # =========================
@@ -328,16 +331,12 @@ def add_item():
     
     # Validación de tipo de datos
     try:
-        data = request.get_json(force=False)
-        if not isinstance(data, dict):
+        data = request.get_json()
+        if not data or not isinstance(data, dict):
             register_failed_attempt()
-            return {"error": "Formato JSON inválido"}, 400
+            return {"error": "Debe enviar un objeto JSON válido"}, 400
         
-        if "name" not in data:
-            register_failed_attempt()
-            return {"error": "Campo 'name' requerido"}, 400
-        
-        raw = data.get("name")
+        raw = data.get("name", "")
         
         # Validar que sea string
         if not isinstance(raw, str):
@@ -346,7 +345,7 @@ def add_item():
         
     except Exception as e:
         register_failed_attempt()
-        return {"error": "Error al procesar JSON"}, 400
+        return {"error": "Error al procesar la solicitud"}, 400
     
     name = clean_input(raw)
 
@@ -384,18 +383,13 @@ def edit(item_id):
     
     # Validación de tipo de datos
     try:
-        data = request.get_json(force=False)
-        if not isinstance(data, dict):
+        data = request.get_json()
+        if not data or not isinstance(data, dict):
             con.close()
             register_failed_attempt()
-            return {"error": "Formato JSON inválido"}, 400
+            return {"error": "Debe enviar un objeto JSON válido"}, 400
         
-        if "name" not in data:
-            con.close()
-            register_failed_attempt()
-            return {"error": "Campo 'name' requerido"}, 400
-        
-        raw = data.get("name")
+        raw = data.get("name", "")
         
         # Validar que sea string
         if not isinstance(raw, str):
@@ -406,7 +400,7 @@ def edit(item_id):
     except Exception as e:
         con.close()
         register_failed_attempt()
-        return {"error": "Error al procesar JSON"}, 400
+        return {"error": "Error al procesar la solicitud"}, 400
     
     name = clean_input(raw)
 
