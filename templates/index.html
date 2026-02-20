@@ -356,7 +356,10 @@ h1 {
 </button>
 
 <div id="addForm" class="add-form">
-<input id="txt" placeholder="Nombre del usuario...">
+<input id="txt" placeholder="Nombre del usuario..." maxlength="50">
+<div style="font-size: 12px; color: #6c757d; margin-bottom: 10px;">
+    Solo letras, números y caracteres básicos ( . _ - ). Máximo 50 caracteres.
+</div>
 <div class="form-buttons">
 <button class="btn-save" onclick="add()">💾 Guardar</button>
 <button class="btn-cancel" onclick="toggleAddForm()">❌ Cancelar</button>
@@ -376,7 +379,10 @@ h1 {
 <div class="modal" id="modal">
 <div class="modal-box">
 <h3>Editar</h3>
-<input id="editTxt" class="modal-input" placeholder="Nuevo nombre...">
+<input id="editTxt" class="modal-input" placeholder="Nuevo nombre..." maxlength="50">
+<div style="font-size: 12px; color: #6c757d; margin: 10px 0;">
+    Solo letras, números y caracteres básicos ( . _ - ). Máximo 50 caracteres.
+</div>
 <div class="modal-buttons">
 <button class="btn-save" onclick="save()">💾 Guardar</button>
 <button class="btn-cancel" onclick="closeModal()">❌ Cancelar</button>
@@ -388,8 +394,39 @@ h1 {
 
 let editId = null
 
+// Configuración de seguridad
+const MAX_LENGTH = 50
+const MIN_LENGTH = 1
+const DANGEROUS_CHARS = ['<', '>', '{', '}', '[', ']', '|', '\\', '^', '`', ';', '&', '$', '(', ')', '"', "'", '=', '%']
+
+// Validación y limpieza robusta
 function clean(t){
-    return t.replace(/[<>]/g,"")
+    // Eliminar espacios extras
+    t = t.trim()
+    
+    // Validar longitud
+    if(t.length < MIN_LENGTH || t.length > MAX_LENGTH) {
+        return null
+    }
+    
+    // Bloquear caracteres peligrosos
+    for(let char of DANGEROUS_CHARS) {
+        if(t.includes(char)) {
+            return null
+        }
+    }
+    
+    // Solo permitir alfanuméricos, espacios y algunos caracteres básicos
+    const validPattern = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s._-]+$/
+    if(!validPattern.test(t)) {
+        return null
+    }
+    
+    return t
+}
+
+function showError(message) {
+    alert("⚠️ " + message)
 }
 
 function toggleAddForm() {
@@ -403,88 +440,156 @@ function toggleAddForm() {
 }
 
 async function load(){
-    const res=await fetch("/items")
-    const data=await res.json()
+    try {
+        const res = await fetch("/items")
+        if(!res.ok) {
+            showError("Error al cargar los datos")
+            return
+        }
+        
+        const data = await res.json()
 
-    const list=document.getElementById("list")
-    list.innerHTML=""
+        const list = document.getElementById("list")
+        list.innerHTML = ""
 
-    if(data.length === 0) {
-        list.innerHTML = '<div class="empty-state">No hay usuarios registrados. ¡Agrega uno!</div>'
-        return
-    }
-
-    data.forEach(i=>{
-        const row=document.createElement("div")
-        row.className="table-row"
-
-        const name=document.createElement("div")
-        name.className="item-name"
-        name.textContent=i.name
-
-        const actions=document.createElement("div")
-        actions.className="actions"
-
-        const e=document.createElement("button")
-        e.className="btn-edit"
-        e.innerHTML='✏️ Editar'
-        e.onclick=()=>{
-            editId=i.id
-            editTxt.value=i.name
-            modal.style.display="flex"
+        if(data.length === 0) {
+            list.innerHTML = '<div class="empty-state">No hay usuarios registrados. ¡Agrega uno!</div>'
+            return
         }
 
-        const d=document.createElement("button")
-        d.className="btn-delete"
-        d.innerHTML='🗑️ Eliminar'
-        d.onclick=async()=>{
-            if(confirm("¿Seguro que quieres eliminar este usuario?")) {
-                await fetch("/items/"+i.id,{method:"DELETE"})
-                load()
+        data.forEach(i=>{
+            const row = document.createElement("div")
+            row.className = "table-row"
+
+            const name = document.createElement("div")
+            name.className = "item-name"
+            name.textContent = i.name
+
+            const actions = document.createElement("div")
+            actions.className = "actions"
+
+            const e = document.createElement("button")
+            e.className = "btn-edit"
+            e.innerHTML = '✏️ Editar'
+            e.onclick = ()=>{
+                editId = i.id
+                editTxt.value = i.name
+                modal.style.display = "flex"
             }
-        }
 
-        actions.appendChild(e)
-        actions.appendChild(d)
-        row.appendChild(name)
-        row.appendChild(actions)
-        list.appendChild(row)
-    })
+            const d = document.createElement("button")
+            d.className = "btn-delete"
+            d.innerHTML = '🗑️ Eliminar'
+            d.onclick = async()=>{
+                if(confirm("¿Seguro que quieres eliminar este usuario?")) {
+                    try {
+                        const response = await fetch("/items/" + i.id, {
+                            method: "DELETE",
+                            credentials: 'same-origin'
+                        })
+                        
+                        if(!response.ok) {
+                            const error = await response.json()
+                            showError(error.error || "Error al eliminar")
+                            return
+                        }
+                        
+                        load()
+                    } catch(e) {
+                        showError("Error de conexión. Intenta de nuevo.")
+                    }
+                }
+            }
+
+            actions.appendChild(e)
+            actions.appendChild(d)
+            row.appendChild(name)
+            row.appendChild(actions)
+            list.appendChild(row)
+        })
+    } catch(e) {
+        showError("Error de conexión al cargar los datos")
+    }
 }
 
 async function add(){
-    const val=clean(txt.value.trim())
-    if(!val) return alert("Por favor escribe un nombre")
+    const val = clean(txt.value)
+    
+    if(val === null) {
+        showError("Nombre inválido. Solo se permiten letras, números y caracteres básicos (._-). Máximo 50 caracteres.")
+        return
+    }
+    
+    if(!val) {
+        showError("Por favor escribe un nombre")
+        return
+    }
 
-    await fetch("/items",{
-        method:"POST",
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({name:val})
-    })
+    try {
+        const response = await fetch("/items",{
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({name: val})
+        })
+        
+        if(!response.ok) {
+            const error = await response.json()
+            showError(error.error || "Error al agregar el usuario")
+            return
+        }
 
-    txt.value=""
-    toggleAddForm()
-    load()
+        txt.value = ""
+        toggleAddForm()
+        load()
+    } catch(e) {
+        showError("Error de conexión. Intenta de nuevo.")
+    }
 }
 
 async function save(){
-    const val=clean(editTxt.value.trim())
-    if(!val) return alert("Por favor escribe un nombre")
+    const val = clean(editTxt.value)
+    
+    if(val === null) {
+        showError("Nombre inválido. Solo se permiten letras, números y caracteres básicos (._-). Máximo 50 caracteres.")
+        return
+    }
+    
+    if(!val) {
+        showError("Por favor escribe un nombre")
+        return
+    }
 
-    await fetch("/items/"+editId,{
-        method:"PUT",
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({name:val})
-    })
+    try {
+        const response = await fetch("/items/" + editId, {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({name: val})
+        })
+        
+        if(!response.ok) {
+            const error = await response.json()
+            showError(error.error || "Error al actualizar el usuario")
+            return
+        }
 
-    closeModal()
-    load()
+        closeModal()
+        load()
+    } catch(e) {
+        showError("Error de conexión. Intenta de nuevo.")
+    }
 }
 
 function closeModal(){
     modal.style.display="none"
 }
 
+// Cargar datos al iniciar
 load()
 
 </script>
